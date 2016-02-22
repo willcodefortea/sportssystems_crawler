@@ -1,27 +1,12 @@
 SportsSystem Crawler
 ===============================
 
-version number: 0.0.1
-author: Ben Emery
-
 Overview
 --------
 
 A simple crawler for SportsSystems results.
 
-Installation / Usage
---------------------
 
-To install use pip:
-
-    $ pip install sportssystem_crawler
-
-
-Or clone the repo:
-
-    $ git clone https://github.com/willcodefortea/sportssystem_crawler.git
-    $ python setup.py install
-    
 Contributing
 ------------
 
