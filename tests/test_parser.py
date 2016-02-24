@@ -1,4 +1,4 @@
-from sportsystems_crawler import parser
+from sport_systems import parser
 
 
 def test_parsing(response_1):

@@ -110,7 +110,7 @@ class CsvSpider(Spider):
             fieldnames=[
                 'pos', 'time', 'name', 'team', 'cat', 'num', 'chip', 'grade',
             ],
-            delimiter=',',
+            delimiter='\t',
             extrasaction='ignore'
         )
         self.writer.writeheader()

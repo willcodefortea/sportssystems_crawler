@@ -1,12 +1,12 @@
 import responses
-from sportsystems_crawler.spider import Spider
+from sport_systems.spider import Spider
 
 
 @responses.activate
 def test_total(response_1):
     responses.add(
         responses.GET,
-        'http://www.sportsystems.co.uk/ss/results/data/1740/?posStart=1',
+        'http://www.sportsystems.co.uk/ss/results/data/1740/?posStart=0&count=20',  # NOQA
         body=response_1,
         match_querystring=True
     )

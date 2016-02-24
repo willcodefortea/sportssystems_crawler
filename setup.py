@@ -18,7 +18,7 @@ install_requires = [x.strip() for x in all_reqs if 'git+' not in x]
 dependency_links = [x.strip().replace('git+', '') for x in all_reqs if 'git+' not in x]
 
 setup(
-    name='sportsystem_crawler',
+    name='sport_systems',
     version=__version__,
     description='A simple crawler for SportsSystems results.',
     long_description=long_description,
