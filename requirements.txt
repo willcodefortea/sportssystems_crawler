@@ -1,3 +1,4 @@
 pypi-publisher
 beautifulsoup4
 requests
+lxml
