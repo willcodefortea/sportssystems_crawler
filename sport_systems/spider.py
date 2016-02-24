@@ -1,4 +1,5 @@
 import csv
+import contextlib
 import multiprocessing
 
 import requests
@@ -56,26 +57,33 @@ class Spider(object):
             queue.get()
             queue.task_done()
 
-    def go(self):
-        """Start all the things."""
+    @contextlib.contextmanager
+    def process_manager(self):
+        """A simple context manager to clean up processes nicely."""
         for proc in self.download_processes:
             proc.start()
         self.callback_process.start()
 
-        # Sneaky trick to round UP without casting
-        lim = -(-self.total_count // self.PAGE_SIZE)
+        try:
+            yield
+        finally:
+            # Our function has exited, shut down all running processes
+            for proc in self.download_processes:
+                proc.terminate()
+            self.callback_process.terminate()
 
-        for page_num in range(1, lim + 1):
-            self.url_queue.put(page_num)
+    def go(self):
+        """Start all the things."""
+        with self.process_manager():
+            # Sneaky trick to round UP without casting
+            lim = -(-self.total_count // self.PAGE_SIZE)
 
-        # Wait for all the items in the queue to be consumed
-        self.url_queue.join()
-        self.results_queue.join()
+            for page_num in range(1, lim + 1):
+                self.url_queue.put(page_num)
 
-        # Everything has completed, shut the processes down
-        for proc in self.download_processes:
-            proc.terminate()
-        self.callback_process.terminate()
+            # Wait for all the items in the queue to be consumed
+            self.url_queue.join()
+            self.results_queue.join()
 
     @property
     def total_count(self):
