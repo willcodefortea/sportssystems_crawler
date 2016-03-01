@@ -1,7 +1,7 @@
 
 import os
 import sys
-from sport_systems.spider import CsvSpider
+from sport_systems import csv_builder
 
 
 def main(event_id, overwrite=False):
@@ -9,8 +9,7 @@ def main(event_id, overwrite=False):
 
     if not os.path.exists(filename) or overwrite:
         with open(filename, 'w', newline='') as out:
-            spider = CsvSpider(event_id=event_id, out=out)
-            spider.go()
+            csv_builder.build(event_id, out)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

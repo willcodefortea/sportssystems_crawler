@@ -10,14 +10,19 @@ from . import parser
 class Spider(object):
     """A simple spider to fetch URLS.
 
+    :arg callable callback: A method that accepts a single argument
+        (the response object) to be called whenever a request is
+        completed.
     :arg int N: The number of processes to spawn. Defaults to double the
         number of available CPUs - 1 as one process is used for
         callbacks.
-    :arg int max_retry: The number of times to attempt refetching a URL
-        if an error response is returned.
+    :arg int max_retry: The number of times to attempt fetch a URL if an
+        error response is returned.
     """
-    def __init__(self, N=None, max_retry=3):
+    def __init__(self, callback, N=None, max_retry=3):
         self.N = N if N else (multiprocessing.cpu_count() * 2 - 1)
+
+        self.callback = callback
 
         self.url_queue = multiprocessing.JoinableQueue()
         self.results_queue = multiprocessing.JoinableQueue()
@@ -38,7 +43,13 @@ class Spider(object):
             self.download_processes.append(proc)
 
     def download(self, url_queue, results_queue, error_queue):
-        """Perform a HTTP request and parse the reponse."""
+        """Perform a HTTP request.
+
+        This method aims to be as ignorant of the implementation as
+        possible, once a non error result has been downloaded, we push
+        the result into a queue for the concrete class instance to do
+        whatever it likes.
+        """
         while True:
             data = url_queue.get()
 
@@ -60,15 +71,16 @@ class Spider(object):
             url_queue.task_done()
 
     def _callback(self, queue):
-        """Private method to proxy a friendlier public callback."""
+        """Private method to proxy a friendlier public callback.
+
+        Rather than rely on subclasses to each mark tasks as done, we
+        handle that here and simply provide an interface to handle the
+        resulting content.
+        """
         while True:
             result = queue.get()
             self.callback(result)
             queue.task_done()
-
-    def callback(self, result):
-        """Do something with data that's been retrieved."""
-        raise NotImplementedError()
 
     @contextlib.contextmanager
     def _process_manager(self):
@@ -132,8 +144,6 @@ class SportSystemResultsSpider(Spider):
         self.event_id = event_id
         self.page_size = page_size
 
-        self.results = []
-
     def populate_urls(self):
         """Create URLs for this spider to fetch."""
         lim = -(-self.total_count // self.page_size)
@@ -163,11 +173,6 @@ class SportSystemResultsSpider(Spider):
         querystring = urllib.parse.urlencode(params)
         return '%s?%s' % (base_url, querystring)
 
-    def callback(self, result):
-        """We've got the raw XML from the API, parse it now."""
-        for cell in parser.parse(result.content):
-            self.results.append(cell)
-
     @property
     def total_count(self):
         """The total number of results available."""
@@ -184,24 +189,3 @@ class SportSystemResultsSpider(Spider):
             response.raise_for_status()
 
         return parser.extract_total(response.content)
-
-
-class CsvSpider(SportSystemResultsSpider):
-    """Output the results as a CSV as soon as they come in."""
-    def __init__(self, out, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.out = out
-        self.writer = csv.DictWriter(
-            out,
-            fieldnames=[
-                'pos', 'time', 'name', 'team', 'cat', 'num', 'chip', 'grade',
-            ],
-            delimiter='\t',
-            extrasaction='ignore'
-        )
-        self.writer.writeheader()
-
-    def callback(self, result):
-        """Do something with data that's sent through the pipe."""
-        for cell in parser.parse(result.content):
-            self.writer.writerow(cell)
