@@ -1,4 +1,4 @@
-import csv
+from collections import OrderedDict
 import contextlib
 import multiprocessing
 import urllib
@@ -164,7 +164,7 @@ class SportSystemResultsSpider(Spider):
         """
         base_url = self.BASE_URL.format(event_id=self.event_id)
 
-        params = {}
+        params = OrderedDict()
 
         params['link'] = link
         params['posStart'] = posStart or (page_num - 1) * count
