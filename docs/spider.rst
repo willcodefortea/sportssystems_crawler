@@ -4,7 +4,10 @@
 Spider
 ------
 
-.. automodule:: sportsystems_crawler.spider
+.. automodule:: sport_systems.spider
 
     .. autoclass:: Spider
+        :members:
+
+    .. autoclass:: SportSystemResultsSpider
         :members:

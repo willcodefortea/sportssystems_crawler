@@ -12,7 +12,6 @@ def main(event_id, overwrite=False):
             spider = CsvSpider(event_id=event_id, out=out)
             spider.go()
 
-
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         print('Usage:\n\tpython go.py <EVENT_ID> --overwrite\n')
